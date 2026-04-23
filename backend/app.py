@@ -4,15 +4,30 @@ import psycopg2
 import os
 
 app = Flask(__name__)
-CORS(app)  # ✅ ENABLE CORS
+CORS(app)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-def get_conn():
-    return psycopg2.connect(
-        os.getenv("DATABASE_URL"),
-        sslmode="require"
-    )
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL, sslmode="require")
+
+@app.before_request
+def create_table():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS items (
+            id SERIAL PRIMARY KEY,
+            content TEXT
+        );
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+@app.route('/')
+def home():
+    return "Backend is running!"
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
@@ -50,8 +65,5 @@ def delete_data(id):
     return jsonify({"message": "deleted"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-
-@app.route('/')
-def home():
-    return "Backend is running!"
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
