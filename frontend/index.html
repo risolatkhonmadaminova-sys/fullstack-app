@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>My Fullstack App</h2>
+<p>Student: Your Name | ID: 123456</p>
+
+<input id="input">
+<button onclick="add()">Add</button>
+
+<ul id="list"></ul>
+
+<script>
+const API = window.API_URL || "";
+
+async function load() {
+  const res = await fetch(API + '/api/data');
+  const data = await res.json();
+
+  document.getElementById('list').innerHTML =
+    data.map(i =>
+      `<li>${i.content}
+       <button onclick="del(${i.id})">X</button></li>`
+    ).join('');
+}
+
+async function add() {
+  const value = document.getElementById('input').value;
+
+  await fetch(API + '/api/data', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({content: value})
+  });
+
+  load();
+}
+
+async function del(id) {
+  await fetch(API + '/api/data/' + id, { method: 'DELETE' });
+  load();
+}
+
+load();
+</script>
+
+</body>
+</html>
