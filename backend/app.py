@@ -8,8 +8,11 @@ CORS(app)  # ✅ ENABLE CORS
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)  # ✅ FIXED
+def get_conn():
+    return psycopg2.connect(
+        os.getenv("DATABASE_URL"),
+        sslmode="require"
+    )
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
